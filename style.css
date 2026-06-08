@@ -1,0 +1,250 @@
+/* ── 全域重置 ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  background: #f5f3ef;
+  color: #2d2d2d;
+  min-height: 100vh;
+  padding: 24px 16px 60px;
+}
+
+/* ── 版頭 ── */
+.survey-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.survey-header h1 { font-size: 1.6rem; font-weight: 700; color: #1a1a1a; }
+.survey-header .subtitle { font-size: 0.9rem; color: #6b6b6b; margin-top: 4px; }
+.survey-header .version-badge {
+  display: inline-block;
+  background: #c8a97e;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: 99px;
+  margin-top: 8px;
+}
+
+/* ── 進度條 ── */
+.progress-wrap {
+  max-width: 680px;
+  margin: 0 auto 28px;
+}
+.progress-label { display: flex; justify-content: space-between; font-size: 0.82rem; color: #888; margin-bottom: 6px; }
+.progress-bar { height: 6px; background: #e0d9d0; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: #c8a97e; border-radius: 3px; transition: width 0.4s ease; }
+
+/* ── 問題卡片 ── */
+.question-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: 680px;
+  margin: 0 auto 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: none;
+}
+.question-card.active { display: block; }
+.question-card.slide-in { animation: slideIn 0.3s ease; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.question-number {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #c8a97e;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.question-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.question-hint {
+  font-size: 0.82rem;
+  color: #888;
+  margin-bottom: 20px;
+}
+.question-new { color: #c8a97e; font-size: 0.78rem; font-weight: 600; margin-left: 6px; }
+
+/* ── 單選 / 多選選項 ── */
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 2px solid #e8e0d6;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.option-item:hover { border-color: #c8a97e; background: #fdf8f2; }
+.option-item.selected { border-color: #c8a97e; background: #fdf5e8; }
+
+.option-item input[type="radio"],
+.option-item input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: #c8a97e;
+  flex-shrink: 0;
+}
+.option-text { font-size: 0.95rem; line-height: 1.45; }
+.option-input {
+  margin-top: 8px;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  display: none;
+}
+.option-item.selected .option-input { display: block; }
+
+/* ── Likert 量表 ── */
+.likert-table { width: 100%; border-collapse: collapse; }
+.likert-table th {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #888;
+  padding: 6px 4px;
+  text-align: center;
+}
+.likert-table th:first-child { text-align: left; width: 45%; }
+.likert-table td {
+  padding: 10px 4px;
+  text-align: center;
+  border-top: 1px solid #f0ece6;
+}
+.likert-table td:first-child { text-align: left; font-size: 0.9rem; padding-right: 12px; }
+.likert-table input[type="radio"] { accent-color: #c8a97e; cursor: pointer; }
+.likert-scale-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: #999; margin-top: 4px; }
+
+/* ── 排序題 ── */
+.ranking-list { display: flex; flex-direction: column; gap: 8px; }
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 2px solid #e8e0d6;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+.rank-item.selected { border-color: #c8a97e; background: #fdf5e8; }
+.rank-badge {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e8e0d6;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.rank-item.selected .rank-badge { background: #c8a97e; color: #fff; }
+.rank-text { font-size: 0.92rem; }
+.ranking-hint { font-size: 0.8rem; color: #aaa; margin-top: 10px; }
+
+/* ── Van Westendorp ── */
+.vw-grid { display: flex; flex-direction: column; gap: 14px; }
+.vw-item label { display: block; font-size: 0.88rem; color: #555; margin-bottom: 4px; }
+.vw-item strong { color: #2d2d2d; }
+.vw-input {
+  width: 100%;
+  border: 2px solid #e8e0d6;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.vw-input:focus { border-color: #c8a97e; }
+
+/* ── 開放題 ── */
+.open-textarea {
+  width: 100%;
+  border: 2px solid #e8e0d6;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+  outline: none;
+  transition: border-color 0.2s;
+  color: #2d2d2d;
+}
+.open-textarea:focus { border-color: #c8a97e; }
+
+/* ── 按鈕區 ── */
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 28px;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.btn {
+  padding: 12px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-prev { background: #e8e0d6; color: #555; }
+.btn-prev:hover { background: #ddd6cc; }
+.btn-next { background: #c8a97e; color: #fff; }
+.btn-next:hover { background: #b89568; }
+.btn-submit { background: #3d8b3d; color: #fff; }
+.btn-submit:hover { background: #2d6b2d; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── 完成畫面 ── */
+.thank-you {
+  display: none;
+  text-align: center;
+  padding: 60px 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.thank-you.show { display: block; }
+.thank-you .icon { font-size: 4rem; margin-bottom: 16px; }
+.thank-you h2 { font-size: 1.4rem; margin-bottom: 12px; color: #1a1a1a; }
+.thank-you p { color: #666; line-height: 1.6; }
+
+/* ── 結束問卷畫面 ── */
+.end-screen {
+  display: none;
+  text-align: center;
+  padding: 60px 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.end-screen.show { display: block; }
+.end-screen .icon { font-size: 3.5rem; margin-bottom: 16px; }
+.end-screen h2 { font-size: 1.3rem; margin-bottom: 10px; }
+.end-screen p { color: #666; }
+
+/* ── RWD ── */
+@media (max-width: 480px) {
+  .question-card { padding: 20px 18px; }
+  .likert-table th, .likert-table td { padding: 8px 2px; }
+  .likert-table td:first-child { font-size: 0.82rem; }
+}

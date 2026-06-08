@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>後台管理 — 手搖磨豆機問卷</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- 登入畫面 -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="icon">🔐</div>
+    <h2>後台管理</h2>
+    <p>手搖磨豆機市場調查問卷</p>
+    <input class="login-input" type="password" id="pwInput" placeholder="請輸入後台密碼"
+      onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="login-btn" onclick="doLogin()">登入</button>
+    <div class="login-error" id="loginError">密碼錯誤，請再試一次</div>
+  </div>
+</div>
+
+<!-- 後台主界面 -->
+<div class="admin-wrap" id="adminWrap">
+  <div class="admin-header">
+    <h1>📊 問卷後台管理</h1>
+    <span class="badge">手搖磨豆機市場調查 v4</span>
+  </div>
+
+  <div class="admin-toolbar">
+    <button class="admin-btn admin-btn-csv" onclick="exportCSV()">⬇ 匯出 CSV</button>
+    <button class="admin-btn admin-btn-refresh" onclick="loadStats()">↻ 重新整理</button>
+    <div class="count-badge">
+      目前回覆：<strong id="totalCount">—</strong> 份
+    </div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div style="color:#555;padding:20px">載入中...</div>
+  </div>
+</div>
+
+<script>
+let token = '';
+
+async function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  const res = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pw }),
+  });
+  const data = await res.json();
+  if (data.success) {
+    token = data.token;
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('adminWrap').style.display = '';
+    loadStats();
+  } else {
+    document.getElementById('loginError').style.display = '';
+  }
+}
+
+async function loadStats() {
+  const res = await fetch('/api/admin/stats', {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (res.status === 401) { location.reload(); return; }
+  const data = await res.json();
+  document.getElementById('totalCount').textContent = data.total;
+  renderStats(data);
+}
+
+async function exportCSV() {
+  const link = document.createElement('a');
+  link.href = '/api/admin/export';
+  // 加上 auth header 不能用 <a>，改用 fetch blob
+  const res = await fetch('/api/admin/export', {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (res.status === 401) { alert('未授權'); return; }
+  const blob = await res.blob();
+  const filename = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] || 'survey.csv';
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderStats(data) {
+  const grid = document.getElementById('statsGrid');
+  if (data.total === 0) {
+    grid.innerHTML = '<div style="color:#555;padding:20px">尚無回覆資料</div>';
+    return;
+  }
+
+  let html = '';
+  Object.entries(data.questions).forEach(([qId, q]) => {
+    html += `<div class="stat-card">`;
+    html += `<h3>${qId}</h3>`;
+    html += `<div class="q-text">${q.text}</div>`;
+
+    if (q.type === 'single' || q.type === 'multiple') {
+      const total = Object.values(q.counts).reduce((a, b) => a + b, 0);
+      if (total === 0) {
+        html += `<div class="no-data">尚無作答資料</div>`;
+      } else {
+        Object.entries(q.counts).forEach(([label, count]) => {
+          const pct = total ? Math.round(count / total * 100) : 0;
+          html += `
+            <div class="bar-item">
+              <div class="bar-label">
+                <span>${label}</span>
+                <span class="count">${count} 份 (${pct}%)</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" style="width:${pct}%"></div>
+              </div>
+            </div>`;
+        });
+      }
+    } else if (q.type === 'likert') {
+      Object.values(q.items).forEach(item => {
+        const avg = parseFloat(item.avg);
+        const pct = item.avg ? Math.round((avg / 5) * 100) : 0;
+        const color = avg >= 4 ? '#e07070' : avg >= 3 ? '#c8a97e' : '#7eb87e';
+        html += `
+          <div class="likert-item">
+            <div class="likert-item-label">${item.text} <span style="color:#555;font-size:0.75rem">(n=${item.n})</span></div>
+            <div class="likert-avg">
+              <div class="avg-track">
+                <div class="avg-fill" style="width:${pct}%;background:${color}"></div>
+              </div>
+              <div class="avg-val">${item.avg || '—'}</div>
+            </div>
+          </div>`;
+      });
+    }
+
+    html += `</div>`;
+  });
+
+  grid.innerHTML = html || '<div style="color:#555">暫無統計資料</div>';
+}
+
+// 自動重新整理（每 30 秒）
+setInterval(() => { if (token) loadStats(); }, 30000);
+</script>
+</body>
+</html>

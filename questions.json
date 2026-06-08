@@ -1,0 +1,480 @@
+{
+  "title": "手搖磨豆機市場調查問卷",
+  "subtitle": "Manual Coffee Grinder Consumer Research Survey",
+  "version": "v4",
+  "description": "目標族群：進階咖啡玩家（手搖磨豆機進階使用者）",
+  "sections": [
+    {
+      "id": "S1",
+      "title": "第一部分：篩選題",
+      "questions": [
+        {
+          "id": "Q1",
+          "type": "single",
+          "text": "您是否有飲用咖啡的習慣？",
+          "options": [
+            { "id": "A", "text": "是，每天都喝" },
+            { "id": "B", "text": "是，偶爾喝（每週1–3次）" },
+            { "id": "C", "text": "很少喝（每月數次）", "skipTo": "END" },
+            { "id": "D", "text": "幾乎不喝", "skipTo": "END" }
+          ]
+        },
+        {
+          "id": "Q2",
+          "type": "single",
+          "text": "您是否會自行在家沖煮咖啡？",
+          "options": [
+            { "id": "A", "text": "是，主要自己沖煮" },
+            { "id": "B", "text": "偶爾自己沖，也會外購" },
+            { "id": "C", "text": "幾乎都外購，不自己沖", "skipTo": "END" }
+          ]
+        },
+        {
+          "id": "Q3",
+          "type": "multiple",
+          "text": "您目前使用過哪種類型的磨豆機？（可複選）",
+          "note": "此題決定後續分流",
+          "options": [
+            { "id": "A", "text": "手搖磨豆機（手動）" },
+            { "id": "B", "text": "電動磨豆機（家用）" },
+            { "id": "C", "text": "電動磨豆機（商用等級）" },
+            { "id": "D", "text": "從未使用過磨豆機，使用預磨粉" },
+            { "id": "E", "text": "其他：", "hasInput": true }
+          ],
+          "skipLogic": [
+            {
+              "condition": "notSelected:A",
+              "skipQuestions": ["Q3A", "Q3B", "Q12", "Q13", "Q14", "Q15"]
+            },
+            {
+              "condition": "onlySelected:D",
+              "skipQuestions": ["Q3A", "Q3B", "Q12", "Q13", "Q14", "Q15", "Q17", "Q19", "Q25"]
+            }
+          ]
+        },
+        {
+          "id": "Q3A",
+          "type": "single",
+          "text": "您目前使用或最近一台手搖磨豆機的購入價格約為？",
+          "showIf": "Q3.includes('A')",
+          "options": [
+            { "id": "A", "text": "NT$1,000 以下（入門款）", "setFlag": "lightweight" },
+            { "id": "B", "text": "NT$1,000–3,000（中階款）" },
+            { "id": "C", "text": "NT$3,000–8,000（進階款）" },
+            { "id": "D", "text": "NT$8,000 以上（旗艦款）" },
+            { "id": "E", "text": "尚未購買，但有研究過磨豆機市場" }
+          ]
+        },
+        {
+          "id": "Q3B",
+          "type": "single",
+          "text": "您是否曾經根據不同咖啡豆的產區或處理法調整研磨刻度？",
+          "showIf": "Q3.includes('A')",
+          "options": [
+            { "id": "A", "text": "是，經常這樣做，並記錄不同豆款對應的刻度設定" },
+            { "id": "B", "text": "偶爾會調整，但不會特別記錄" },
+            { "id": "C", "text": "很少調整，通常固定一個刻度" },
+            { "id": "D", "text": "不清楚研磨刻度對風味的影響" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "第二部分：使用者輪廓",
+      "questions": [
+        {
+          "id": "Q4",
+          "type": "single",
+          "text": "您的年齡區間？",
+          "options": [
+            { "id": "A", "text": "18–24歲" },
+            { "id": "B", "text": "25–34歲" },
+            { "id": "C", "text": "35–44歲" },
+            { "id": "D", "text": "45–54歲" },
+            { "id": "E", "text": "55歲以上" }
+          ]
+        },
+        {
+          "id": "Q5",
+          "type": "single",
+          "text": "您的性別？",
+          "options": [
+            { "id": "A", "text": "男性" },
+            { "id": "B", "text": "女性" },
+            { "id": "C", "text": "非二元性別／其他" },
+            { "id": "D", "text": "不願透露" }
+          ]
+        },
+        {
+          "id": "Q6",
+          "type": "single",
+          "text": "您目前的職業或身分？",
+          "options": [
+            { "id": "A", "text": "學生" },
+            { "id": "B", "text": "上班族／白領" },
+            { "id": "C", "text": "自由工作者" },
+            { "id": "D", "text": "創業者／業主" },
+            { "id": "E", "text": "家管" },
+            { "id": "F", "text": "退休" },
+            { "id": "G", "text": "其他" }
+          ]
+        },
+        {
+          "id": "Q7",
+          "type": "single",
+          "text": "您每月花費在咖啡器材（磨豆機、沖煮器具等）的預算約為？",
+          "options": [
+            { "id": "A", "text": "NT$500 以下" },
+            { "id": "B", "text": "NT$501–2,000" },
+            { "id": "C", "text": "NT$2,001–5,000" },
+            { "id": "D", "text": "NT$5,001–10,000" },
+            { "id": "E", "text": "NT$10,001 以上" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "第三部分：咖啡沖煮行為",
+      "questions": [
+        {
+          "id": "Q8",
+          "type": "single",
+          "text": "您平均每週自行沖煮咖啡幾次？",
+          "options": [
+            { "id": "A", "text": "少於1次" },
+            { "id": "B", "text": "1–3次" },
+            { "id": "C", "text": "4–6次" },
+            { "id": "D", "text": "每天1次" },
+            { "id": "E", "text": "每天2次以上" }
+          ]
+        },
+        {
+          "id": "Q9",
+          "type": "multiple",
+          "text": "您主要使用哪些沖煮方式？（可複選，最多3項）",
+          "maxSelect": 3,
+          "options": [
+            { "id": "A", "text": "手沖（Pour Over）" },
+            { "id": "B", "text": "愛樂壓（AeroPress）" },
+            { "id": "C", "text": "法壓壺（French Press）" },
+            { "id": "D", "text": "摩卡壺（Moka Pot）" },
+            { "id": "E", "text": "義式咖啡機（Espresso）" },
+            { "id": "F", "text": "冷萃（Cold Brew）" },
+            { "id": "G", "text": "虹吸壺（Syphon）" },
+            { "id": "H", "text": "其他" }
+          ]
+        },
+        {
+          "id": "Q10",
+          "type": "multiple",
+          "text": "您通常喝哪類咖啡豆？（可複選）",
+          "options": [
+            { "id": "A", "text": "單品豆（Single Origin）" },
+            { "id": "B", "text": "配方豆（Blend）" },
+            { "id": "C", "text": "精品咖啡豆（Specialty，SCA 80分以上）" },
+            { "id": "D", "text": "商業豆／超市豆" },
+            { "id": "E", "text": "不確定" }
+          ]
+        },
+        {
+          "id": "Q11",
+          "type": "single",
+          "text": "您主要在哪裡購買咖啡豆？",
+          "options": [
+            { "id": "A", "text": "實體咖啡烘焙坊" },
+            { "id": "B", "text": "網路購物平台（蝦皮、Momo等）" },
+            { "id": "C", "text": "超市／量販店" },
+            { "id": "D", "text": "訂閱制咖啡服務" },
+            { "id": "E", "text": "直接向農場購買" },
+            { "id": "F", "text": "其他" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "第四部分：磨豆機使用行為",
+      "note": "僅限 Q3 勾選「手搖磨豆機」者作答",
+      "showIf": "Q3.includes('A')",
+      "questions": [
+        {
+          "id": "Q12",
+          "type": "multiple",
+          "text": "您主要在哪些情境使用手搖磨豆機？（可複選）",
+          "showIf": "Q3.includes('A')",
+          "options": [
+            { "id": "A", "text": "家中日常使用" },
+            { "id": "B", "text": "辦公室" },
+            { "id": "C", "text": "露營或戶外活動" },
+            { "id": "D", "text": "旅行住宿" },
+            { "id": "E", "text": "咖啡聚會或品鑑活動" },
+            { "id": "F", "text": "其他" }
+          ]
+        },
+        {
+          "id": "Q13",
+          "type": "single",
+          "text": "您多久使用一次手搖磨豆機？",
+          "showIf": "Q3.includes('A')",
+          "options": [
+            { "id": "A", "text": "每天" },
+            { "id": "B", "text": "每週3–5次" },
+            { "id": "C", "text": "每週1–2次" },
+            { "id": "D", "text": "每月數次" }
+          ]
+        },
+        {
+          "id": "Q14",
+          "type": "single",
+          "text": "您是否有攜帶磨豆機外出的需求？",
+          "showIf": "Q3.includes('A')",
+          "options": [
+            { "id": "A", "text": "是，經常帶出門" },
+            { "id": "B", "text": "偶爾有外出攜帶需求" },
+            { "id": "C", "text": "幾乎只在家使用" }
+          ]
+        },
+        {
+          "id": "Q15",
+          "type": "single",
+          "text": "您目前使用哪個品牌或型號的手搖磨豆機？",
+          "showIf": "Q3.includes('A')",
+          "options": [
+            { "id": "A", "text": "Comandante（C40 等）" },
+            { "id": "B", "text": "1Zpresso（K、JX、Q 系列等）" },
+            { "id": "C", "text": "Timemore 泰摩（C2、C3、S90 等）" },
+            { "id": "D", "text": "Kinu（M47 等）" },
+            { "id": "E", "text": "Hario" },
+            { "id": "F", "text": "Porlex" },
+            { "id": "G", "text": "其他：", "hasInput": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "title": "第五部分：開放題",
+      "questions": [
+        {
+          "id": "Q17",
+          "type": "multiple",
+          "text": "使用現有磨豆機時，您遇到過以下哪些缺點？（可複選）",
+          "showIf": "NOT Q3.onlySelected('D') AND NOT lightweight",
+          "options": [
+            { "id": "A", "text": "研磨費力，手感容易疲勞" },
+            { "id": "B", "text": "刻度標示不明確，難以重現研磨設定" },
+            { "id": "C", "text": "清潔不便，殘粉難以清除" },
+            { "id": "D", "text": "體積或重量過大，攜帶不便" },
+            { "id": "E", "text": "研磨噪音過大" },
+            { "id": "F", "text": "耐用性不足，使用一段時間後精度下降" },
+            { "id": "G", "text": "細粉（Fines）過多，影響萃取均勻度" },
+            { "id": "H", "text": "刀盤／軸心晃動不穩，影響研磨一致性" },
+            { "id": "I", "text": "步進刻度間距過大，無法微調至理想粗細" },
+            { "id": "J", "text": "磁吸接粉杯吸附力不足，研磨中容易脫落" },
+            { "id": "K", "text": "其他（請說明）：", "hasInput": true }
+          ]
+        },
+        {
+          "id": "Q18",
+          "type": "open",
+          "text": "請描述您心目中理想的手搖磨豆機。可從外觀、手感、功能或使用情境等角度分享。",
+          "placeholder": "我希望它……",
+          "showIf": "NOT lightweight"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "第六部分：痛點量化",
+      "questions": [
+        {
+          "id": "Q19",
+          "type": "likert",
+          "text": "請評估以下問題對您造成的困擾程度",
+          "scale": { "min": 1, "max": 5, "minLabel": "完全不困擾", "maxLabel": "非常困擾" },
+          "showIf": "NOT Q3.onlySelected('D') AND NOT lightweight",
+          "items": [
+            { "id": "Q19_1", "text": "研磨時需要耗費較大力氣，手感疲勞" },
+            { "id": "Q19_2", "text": "刻度標示不明確，難以精準重現研磨設定" },
+            { "id": "Q19_3", "text": "清潔不方便，殘粉難以清除" },
+            { "id": "Q19_4", "text": "體積過大或重量過重，不便攜帶" },
+            { "id": "Q19_5", "text": "研磨過程中噪音過大" },
+            { "id": "Q19_6", "text": "產品耐用性不足，使用一段時間後精度下降" },
+            { "id": "Q19_7", "text": "研磨細粉（Fines）過多，影響萃取均勻度" },
+            { "id": "Q19_8", "text": "★ 刀盤晃動或軸心不穩，影響研磨一致性" },
+            { "id": "Q19_9", "text": "★ 步進刻度間距過大，無法微調至理想粗細" },
+            { "id": "Q19_10", "text": "★ 磁吸接粉杯吸附力不足，研磨中容易脫落" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "title": "第七部分：功能偏好",
+      "questions": [
+        {
+          "id": "Q20",
+          "type": "ranking",
+          "text": "請從以下9項功能中，選出您最重視的5項並依重要性排序（1=最重要）：",
+          "selectCount": 5,
+          "showIf": "NOT lightweight",
+          "items": [
+            { "id": "Q20_1", "text": "研磨一致性（粒徑均勻度）" },
+            { "id": "Q20_2", "text": "外觀設計與質感" },
+            { "id": "Q20_3", "text": "材質（不鏽鋼、鈦合金、木頭等）" },
+            { "id": "Q20_4", "text": "整體重量與體積（攜帶性）" },
+            { "id": "Q20_5", "text": "容量（可一次研磨的豆量）" },
+            { "id": "Q20_6", "text": "清潔便利性（可拆洗設計）" },
+            { "id": "Q20_7", "text": "★ 刀盤精度與軸承穩定性" },
+            { "id": "Q20_8", "text": "★ 步進刻度精細度（每格刻度間距）" },
+            { "id": "Q20_9", "text": "★ 磁吸接粉設計" }
+          ]
+        },
+        {
+          "id": "Q21",
+          "type": "single",
+          "text": "您偏好磨豆機的外殼材質為？",
+          "showIf": "NOT lightweight",
+          "options": [
+            { "id": "A", "text": "不鏽鋼（質感佳、耐用）" },
+            { "id": "B", "text": "鋁合金（輕量化）" },
+            { "id": "C", "text": "鈦合金（超輕量、高端）" },
+            { "id": "D", "text": "木質搭配金屬（美觀、自然感）" },
+            { "id": "E", "text": "工程塑膠（輕量、平價）" },
+            { "id": "F", "text": "無特別偏好" }
+          ]
+        },
+        {
+          "id": "Q22",
+          "type": "single",
+          "text": "您能接受的單次研磨容量（咖啡豆量）為？",
+          "showIf": "NOT lightweight",
+          "options": [
+            { "id": "A", "text": "15g 以下（單杯手沖）" },
+            { "id": "B", "text": "15–25g（1–2杯）" },
+            { "id": "C", "text": "25–40g（2–3杯）" },
+            { "id": "D", "text": "40g 以上（多人份）" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "title": "第八部分：價格敏感度",
+      "questions": [
+        {
+          "id": "Q23",
+          "type": "vanwestendorp",
+          "text": "針對一款高品質進階手搖磨豆機（刀盤精度高、步進刻度細緻），請填入您認為合理的價格：",
+          "currency": "NT$",
+          "items": [
+            { "id": "too_cheap", "text": "太便宜（價格低到讓您懷疑品質）", "label": "過低門檻" },
+            { "id": "cheap", "text": "便宜（價格實惠，開始覺得值得購買）", "label": "划算門檻" },
+            { "id": "expensive", "text": "貴（價格偏高，但仍會考慮購買）", "label": "可接受上限" },
+            { "id": "too_expensive", "text": "太貴（價格高到您不會購買）", "label": "拒絕門檻" }
+          ]
+        },
+        {
+          "id": "Q24",
+          "type": "single",
+          "text": "若此款磨豆機定價為 NT$3,500，您的購買意願為？",
+          "options": [
+            { "id": "A", "text": "非常願意購買" },
+            { "id": "B", "text": "願意購買" },
+            { "id": "C", "text": "考慮購買（視功能而定）" },
+            { "id": "D", "text": "不太願意購買" },
+            { "id": "E", "text": "絕對不購買" }
+          ]
+        },
+        {
+          "id": "Q25",
+          "type": "single",
+          "text": "如果一台磨豆機的軸心穩定性與刀盤精度明顯優於現有中階產品，您願意比現在使用的機型多付多少錢？",
+          "showIf": "NOT Q3.onlySelected('D')",
+          "options": [
+            { "id": "A", "text": "不願意多付，現有產品已足夠" },
+            { "id": "B", "text": "NT$500 以內" },
+            { "id": "C", "text": "NT$500–1,500" },
+            { "id": "D", "text": "NT$1,500–3,000" },
+            { "id": "E", "text": "NT$3,000 以上，精度改善值這個價格" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "title": "第九部分：購買決策因素",
+      "questions": [
+        {
+          "id": "Q26",
+          "type": "ranking",
+          "text": "請將以下購買影響因素依重要性排序（1=最重要，5=最不重要）：",
+          "selectCount": 5,
+          "items": [
+            { "id": "Q26_1", "text": "品牌知名度與口碑" },
+            { "id": "Q26_2", "text": "用戶評價與心得（社群、YouTube、部落格）" },
+            { "id": "Q26_3", "text": "專業人士推薦（咖啡師、烘豆師）" },
+            { "id": "Q26_4", "text": "外觀設計與材質質感" },
+            { "id": "Q26_5", "text": "價格與性價比" }
+          ]
+        },
+        {
+          "id": "Q27",
+          "type": "single",
+          "text": "您通常透過哪個管道了解新款咖啡器具？",
+          "options": [
+            { "id": "A", "text": "Instagram / Facebook" },
+            { "id": "B", "text": "YouTube 評測影片" },
+            { "id": "C", "text": "咖啡相關論壇或社群（PTT、Dcard、Facebook 社群）" },
+            { "id": "D", "text": "實體咖啡器材店" },
+            { "id": "E", "text": "朋友口碑推薦" },
+            { "id": "F", "text": "咖啡品牌官方網站" },
+            { "id": "G", "text": "其他" }
+          ]
+        },
+        {
+          "id": "Q28",
+          "type": "likert",
+          "text": "請評估以下品牌信任指標對您購買決策的影響",
+          "scale": { "min": 1, "max": 5, "minLabel": "完全無影響", "maxLabel": "影響很大" },
+          "items": [
+            { "id": "Q28_1", "text": "品牌提供詳細的技術規格與研磨數據（粒徑分布圖）" },
+            { "id": "Q28_2", "text": "有咖啡師或烘豆師公開背書推薦" },
+            { "id": "Q28_3", "text": "附有完整售後服務與保固條款" },
+            { "id": "Q28_4", "text": "品牌在咖啡器材展覽中曝光" },
+            { "id": "Q28_5", "text": "產品設計獲得設計獎項或認證" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "第十部分：後續參與意願",
+      "questions": [
+        {
+          "id": "Q29",
+          "type": "single",
+          "text": "我們未來是否可以邀請您參與產品深度訪談或原型試用測試？",
+          "options": [
+            { "id": "A", "text": "願意，請聯繫我（填入聯絡方式）：", "hasInput": true },
+            { "id": "B", "text": "願意，但匿名進行" },
+            { "id": "C", "text": "不願意" }
+          ]
+        },
+        {
+          "id": "Q30",
+          "type": "single",
+          "text": "您對這份問卷的整體評價為何？",
+          "options": [
+            { "id": "A", "text": "非常完整，題目清楚" },
+            { "id": "B", "text": "尚可，部分題目有些困惑" },
+            { "id": "C", "text": "題目過多，希望更簡短" },
+            { "id": "D", "text": "有建議，如下：", "hasInput": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

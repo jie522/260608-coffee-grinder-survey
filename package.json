@@ -1,0 +1,12 @@
+{
+  "name": "coffee-grinder-survey",
+  "version": "1.0.0",
+  "description": "手搖磨豆機市場調查問卷系統",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

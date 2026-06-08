@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手搖磨豆機市場調查問卷</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="survey-header">
+  <h1>手搖磨豆機市場調查問卷</h1>
+  <div class="subtitle">Manual Coffee Grinder Consumer Research Survey</div>
+  <span class="version-badge">v4</span>
+</header>
+
+<!-- 進度條 -->
+<div class="progress-wrap" id="progressWrap" style="display:none">
+  <div class="progress-label">
+    <span id="progressText">第 1 題</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<!-- 問題區域（動態產生） -->
+<div id="surveyContainer"></div>
+
+<!-- 導航按鈕 -->
+<div class="nav-buttons" id="navButtons" style="display:none">
+  <button class="btn btn-prev" id="btnPrev" onclick="goPrev()">← 上一題</button>
+  <button class="btn btn-next" id="btnNext" onclick="goNext()">下一題 →</button>
+</div>
+
+<!-- 感謝畫面 -->
+<div class="thank-you" id="thankYou">
+  <div class="icon">☕</div>
+  <h2>感謝您的填寫！</h2>
+  <p>您的回答對我們的研究非常珍貴。<br>我們會將調查結果用於改善手搖磨豆機的設計。</p>
+</div>
+
+<!-- 問卷結束畫面（篩選不符） -->
+<div class="end-screen" id="endScreen">
+  <div class="icon">🙏</div>
+  <h2>感謝您的參與</h2>
+  <p>根據您的填答，您不在本次調查的目標族群範圍內。<br>感謝您撥冗填寫！</p>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// 問卷狀態管理
+// ═══════════════════════════════════════════════════════════
+let questions = [];       // 攤平後的所有題目
+let answers = {};         // { questionId: answer }
+let currentIndex = 0;     // 目前在第幾題
+let isLightweight = false; // 輕量版旗標
+let skippedIds = new Set(); // 要跳過的題目 ID
+let questionOrder = [];   // 實際要顯示的題目序列
+
+// ── 跳題邏輯 ────────────────────────────────────────────────
+function computeSkips() {
+  skippedIds = new Set();
+  const q3 = answers['Q3'] || [];
+  const hasHandGrinder = q3.includes('A');
+  const onlyPreGround = q3.length === 1 && q3.includes('D');
+  const q3a = answers['Q3A'];
+
+  // Q3 未選手搖 → 跳過手搖專屬題
+  if (!hasHandGrinder) {
+    ['Q3A', 'Q3B', 'Q12', 'Q13', 'Q14', 'Q15'].forEach(id => skippedIds.add(id));
+  }
+
+  // 僅選 D（預磨粉） → 跳過更多
+  if (onlyPreGround) {
+    ['Q3A', 'Q3B', 'Q12', 'Q13', 'Q14', 'Q15', 'Q17', 'Q19', 'Q25'].forEach(id => skippedIds.add(id));
+  }
+
+  // 輕量版（Q3A 選 A，NT$1000 以下）
+  isLightweight = (q3a === 'A' && hasHandGrinder);
+  if (isLightweight) {
+    ['Q17', 'Q18', 'Q19', 'Q20', 'Q21', 'Q22'].forEach(id => skippedIds.add(id));
+  }
+
+  // 重建顯示順序
+  questionOrder = questions.filter(q => !skippedIds.has(q.id));
+}
+
+// ═══════════════════════════════════════════════════════════
+// 載入題目
+// ═══════════════════════════════════════════════════════════
+async function loadSurvey() {
+  const res = await fetch('/api/questions');
+  const data = await res.json();
+
+  // 攤平所有 sections 的 questions
+  data.sections.forEach(section => {
+    section.questions.forEach(q => questions.push(q));
+  });
+
+  computeSkips();
+  renderAll();
+  showQuestion(0);
+}
+
+// ═══════════════════════════════════════════════════════════
+// 渲染所有題目（一次性）
+// ═══════════════════════════════════════════════════════════
+function renderAll() {
+  const container = document.getElementById('surveyContainer');
+  container.innerHTML = '';
+
+  questions.forEach(q => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = 'card-' + q.id;
+    card.innerHTML = buildQuestion(q);
+    container.appendChild(card);
+  });
+}
+
+function buildQuestion(q) {
+  const numLabel = `<div class="question-number">題目 ${q.id.replace('Q3A','Q3-A').replace('Q3B','Q3-B')}</div>`;
+  const text = `<div class="question-text">${q.text}</div>`;
+  let hint = '';
+  if (q.type === 'multiple') hint = `<div class="question-hint">可複選${q.maxSelect ? `（最多${q.maxSelect}項）` : ''}</div>`;
+  if (q.type === 'ranking') hint = `<div class="question-hint">從以下 ${q.items?.length || 9} 項中選出最重視的 ${q.selectCount} 項，點擊依序選取（1=最重要）</div>`;
+
+  let body = '';
+  if (q.type === 'single' || q.type === 'multiple') {
+    body = buildChoiceOptions(q);
+  } else if (q.type === 'likert') {
+    body = buildLikert(q);
+  } else if (q.type === 'ranking') {
+    body = buildRanking(q);
+  } else if (q.type === 'vanwestendorp') {
+    body = buildVW(q);
+  } else if (q.type === 'open') {
+    body = buildOpen(q);
+  }
+
+  return numLabel + text + hint + body;
+}
+
+// ── 單選 / 多選 ──────────────────────────────────────────
+function buildChoiceOptions(q) {
+  const isMulti = q.type === 'multiple';
+  const inputType = isMulti ? 'checkbox' : 'radio';
+  let html = '<div class="options-list">';
+  q.options.forEach(opt => {
+    const inputEl = isMulti
+      ? `<input type="checkbox" name="${q.id}" value="${opt.id}" onchange="onChoice('${q.id}','${opt.id}',this)">`
+      : `<input type="radio" name="${q.id}" value="${opt.id}" onchange="onChoice('${q.id}','${opt.id}',this)">`;
+    const extraInput = opt.hasInput
+      ? `<input class="option-input" type="text" placeholder="請填寫..." oninput="onExtraInput('${q.id}','${opt.id}',this.value)">`
+      : '';
+    html += `
+      <label class="option-item" id="opt-${q.id}-${opt.id}">
+        ${inputEl}
+        <div style="flex:1">
+          <div class="option-text">${opt.text}</div>
+          ${extraInput}
+        </div>
+      </label>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function onChoice(qId, optId, el) {
+  const q = questions.find(x => x.id === qId);
+  const isMulti = q.type === 'multiple';
+
+  if (isMulti) {
+    // 多選
+    if (!answers[qId]) answers[qId] = [];
+    if (el.checked) {
+      if (q.maxSelect && answers[qId].length >= q.maxSelect) {
+        el.checked = false;
+        alert(`最多只能選 ${q.maxSelect} 項`);
+        return;
+      }
+      answers[qId].push(optId);
+    } else {
+      answers[qId] = answers[qId].filter(v => v !== optId);
+    }
+  } else {
+    answers[qId] = optId;
+    // 處理特殊跳題旗標
+    const opt = q.options.find(o => o.id === optId);
+    if (opt?.setFlag === 'lightweight') isLightweight = true;
+    else if (q.id === 'Q3A') isLightweight = false;
+  }
+
+  // 更新樣式
+  q.options.forEach(o => {
+    const label = document.getElementById(`opt-${qId}-${o.id}`);
+    if (!label) return;
+    const input = label.querySelector('input[type]');
+    const selected = isMulti ? (answers[qId] || []).includes(o.id) : answers[qId] === o.id;
+    label.classList.toggle('selected', selected);
+    if (input) input.checked = selected;
+  });
+
+  // 每次作答後重新計算跳題
+  if (['Q3', 'Q3A'].includes(qId)) computeSkips();
+}
+
+function onExtraInput(qId, optId, val) {
+  if (!answers[`${qId}_text`]) answers[`${qId}_text`] = {};
+  answers[`${qId}_text`][optId] = val;
+}
+
+// ── Likert ────────────────────────────────────────────────
+function buildLikert(q) {
+  const labels = ['1', '2', '3', '4', '5'];
+  let html = `
+    <div class="likert-scale-labels">
+      <span>${q.scale.minLabel}</span>
+      <span>${q.scale.maxLabel}</span>
+    </div>
+    <table class="likert-table">
+      <thead><tr>
+        <th></th>
+        ${labels.map(l => `<th>${l}</th>`).join('')}
+      </tr></thead>
+      <tbody>`;
+  q.items.forEach(item => {
+    html += `<tr><td>${item.text}</td>`;
+    labels.forEach(l => {
+      html += `<td><input type="radio" name="${item.id}" value="${l}" onchange="answers['${item.id}']=${l}"></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+// ── 排序題 ───────────────────────────────────────────────
+function buildRanking(q) {
+  let html = '<div class="ranking-list">';
+  q.items.forEach(item => {
+    html += `
+      <div class="rank-item" id="rank-${q.id}-${item.id}" onclick="onRank('${q.id}','${item.id}')">
+        <div class="rank-badge" id="badge-${q.id}-${item.id}">—</div>
+        <div class="rank-text">${item.text}</div>
+      </div>`;
+  });
+  html += '</div>';
+  html += `<div class="ranking-hint">已選 <span id="rank-count-${q.id}">0</span> / ${q.selectCount} 項</div>`;
+  return html;
+}
+
+function onRank(qId, itemId) {
+  const q = questions.find(x => x.id === qId);
+  if (!answers[qId]) answers[qId] = [];
+
+  const idx = answers[qId].indexOf(itemId);
+  if (idx !== -1) {
+    // 取消選擇
+    answers[qId].splice(idx, 1);
+  } else {
+    if (answers[qId].length >= q.selectCount) {
+      alert(`最多選 ${q.selectCount} 項`);
+      return;
+    }
+    answers[qId].push(itemId);
+  }
+
+  // 更新顯示
+  q.items.forEach(item => {
+    const rank = answers[qId].indexOf(item.id);
+    const el = document.getElementById(`rank-${qId}-${item.id}`);
+    const badge = document.getElementById(`badge-${qId}-${item.id}`);
+    if (!el) return;
+    if (rank !== -1) {
+      el.classList.add('selected');
+      badge.textContent = rank + 1;
+    } else {
+      el.classList.remove('selected');
+      badge.textContent = '—';
+    }
+  });
+  const countEl = document.getElementById(`rank-count-${qId}`);
+  if (countEl) countEl.textContent = answers[qId].length;
+}
+
+// ── Van Westendorp ───────────────────────────────────────
+function buildVW(q) {
+  let html = '<div class="vw-grid">';
+  q.items.forEach(item => {
+    html += `
+      <div class="vw-item">
+        <label><strong>${item.text}</strong><br><span style="color:#aaa;font-size:0.8rem">${item.label}</span></label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="color:#888;font-size:0.9rem">NT$</span>
+          <input class="vw-input" type="number" min="0" placeholder="請輸入金額"
+            oninput="answers['${q.id}'] = answers['${q.id}'] || {}; answers['${q.id}']['${item.id}'] = this.value">
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+// ── 開放題 ───────────────────────────────────────────────
+function buildOpen(q) {
+  return `<textarea class="open-textarea" placeholder="${q.placeholder || '請輸入您的回答...'}"
+    oninput="answers['${q.id}']=this.value"></textarea>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 導航
+// ═══════════════════════════════════════════════════════════
+function showQuestion(index) {
+  // 隱藏所有卡片
+  document.querySelectorAll('.question-card').forEach(el => el.classList.remove('active'));
+
+  const q = questionOrder[index];
+  if (!q) return;
+
+  const card = document.getElementById('card-' + q.id);
+  if (card) { card.classList.add('active', 'slide-in'); }
+
+  currentIndex = index;
+  updateProgress();
+  updateButtons();
+  document.getElementById('progressWrap').style.display = '';
+  document.getElementById('navButtons').style.display = '';
+}
+
+function updateProgress() {
+  const total = questionOrder.length;
+  const pct = Math.round(((currentIndex + 1) / total) * 100);
+  document.getElementById('progressText').textContent = `第 ${currentIndex + 1} / ${total} 題`;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function updateButtons() {
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  btnPrev.style.display = currentIndex === 0 ? 'none' : '';
+  btnNext.textContent = currentIndex === questionOrder.length - 1 ? '提交問卷 ✓' : '下一題 →';
+  btnNext.className = currentIndex === questionOrder.length - 1
+    ? 'btn btn-submit' : 'btn btn-next';
+  btnNext.onclick = currentIndex === questionOrder.length - 1 ? submitSurvey : goNext;
+}
+
+function goNext() {
+  const q = questionOrder[currentIndex];
+
+  // 檢查是否需要結束問卷（篩選題）
+  if (q.id === 'Q1') {
+    const ans = answers['Q1'];
+    if (ans === 'C' || ans === 'D') { showEndScreen(); return; }
+  }
+  if (q.id === 'Q2') {
+    const ans = answers['Q2'];
+    if (ans === 'C') { showEndScreen(); return; }
+  }
+
+  // 重新計算跳題（每次前進都更新）
+  computeSkips();
+
+  if (currentIndex < questionOrder.length - 1) {
+    showQuestion(currentIndex + 1);
+  }
+}
+
+function goPrev() {
+  if (currentIndex > 0) showQuestion(currentIndex - 1);
+}
+
+function showEndScreen() {
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('navButtons').style.display = 'none';
+  document.querySelectorAll('.question-card').forEach(el => el.classList.remove('active'));
+  document.getElementById('endScreen').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// 提交
+// ═══════════════════════════════════════════════════════════
+async function submitSurvey() {
+  const payload = {
+    ...answers,
+    _version: 'v4',
+    _lightweight: isLightweight,
+    _completedAt: new Date().toISOString(),
+  };
+
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('progressWrap').style.display = 'none';
+      document.getElementById('navButtons').style.display = 'none';
+      document.querySelectorAll('.question-card').forEach(el => el.classList.remove('active'));
+      document.getElementById('thankYou').classList.add('show');
+    } else {
+      alert('提交失敗，請再試一次。');
+    }
+  } catch {
+    alert('網路錯誤，請稍後再試。');
+  }
+}
+
+// ── 啟動 ──────────────────────────────────────────────────
+loadSurvey();
+</script>
+</body>
+</html>
