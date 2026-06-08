@@ -283,6 +283,85 @@ body {
 /* ── 無資料 ── */
 .no-data { color: var(--text-hint); font-size: 0.85rem; margin-top: 8px; }
 
+/* ── 備份按鈕 ── */
+.admin-btn-backup {
+  background: transparent;
+  color: var(--gold-light);
+  border-color: var(--gold);
+}
+.admin-btn-backup:hover {
+  background: rgba(203,162,88,0.12);
+}
+
+/* ── 回存按鈕 ── */
+.admin-btn-restore {
+  background: transparent;
+  color: #f4a4a4;
+  border-color: #c85555;
+}
+.admin-btn-restore:hover {
+  background: rgba(200,85,85,0.12);
+}
+
+/* ── Modal 遮罩 ── */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.modal-backdrop.show { display: flex; }
+
+/* ── Modal 卡片 ── */
+.modal-box {
+  background: var(--surface-1);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-card);
+  padding: 36px 32px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.60);
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-icon { font-size: 2.4rem; text-align: center; margin-bottom: 14px; }
+.modal-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 12px;
+}
+.modal-body {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.modal-warn {
+  font-size: 0.78rem;
+  color: #f4a4a4;
+  text-align: center;
+  margin-bottom: 24px;
+  padding: 8px 12px;
+  background: rgba(200,85,85,0.10);
+  border-radius: 6px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 /* ═══════════════════════════════
    RWD — Mobile
 ═══════════════════════════════ */

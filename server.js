@@ -195,6 +195,40 @@ const server = http.createServer(async (req, res) => {
     return res.end('﻿' + csv); // BOM for Excel 中文相容
   }
 
+  // ── API：備份（下載完整 JSON）──
+  if (pathname === '/api/admin/backup' && req.method === 'GET') {
+    const auth = req.headers.authorization || '';
+    const expected = 'Bearer ' + Buffer.from(CONFIG.adminPassword).toString('base64');
+    if (auth !== expected) return jsonResponse(res, { error: '未授權' }, 401);
+    const responses = readResponses();
+    const filename = `backup_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+    return res.end(JSON.stringify(responses, null, 2));
+  }
+
+  // ── API：回存資料（上傳 JSON 陣列）──
+  if (pathname === '/api/admin/restore' && req.method === 'POST') {
+    const auth = req.headers.authorization || '';
+    const expected = 'Bearer ' + Buffer.from(CONFIG.adminPassword).toString('base64');
+    if (auth !== expected) return jsonResponse(res, { error: '未授權' }, 401);
+    const body = await parseBody(req);
+    if (!Array.isArray(body)) {
+      return jsonResponse(res, { error: '格式錯誤：必須是 JSON 陣列' }, 400);
+    }
+    // 先把現有資料自動備份到 data/ 目錄
+    const current = readResponses();
+    if (current.length > 0) {
+      const ts = new Date().toISOString().slice(0,19).replace(/:/g,'-');
+      const autoBackup = path.join(dataDir, `auto_backup_${ts}.json`);
+      fs.writeFileSync(autoBackup, JSON.stringify(current, null, 2), 'utf8');
+    }
+    fs.writeFileSync(CONFIG.dataFile, JSON.stringify(body, null, 2), 'utf8');
+    return jsonResponse(res, { success: true, restored: body.length });
+  }
+
   // ── API：回覆筆數 ──
   if (pathname === '/api/admin/count' && req.method === 'GET') {
     const auth = req.headers.authorization || '';

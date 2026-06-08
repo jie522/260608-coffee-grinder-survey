@@ -30,10 +30,27 @@
   </div>
 
   <div class="admin-toolbar">
-    <button class="admin-btn admin-btn-csv" onclick="exportCSV()">⬇ 匯出 CSV</button>
+    <button class="admin-btn admin-btn-csv"     onclick="exportCSV()">⬇ 匯出 CSV</button>
+    <button class="admin-btn admin-btn-backup"  onclick="backupJSON()">🗂 備份 JSON</button>
+    <button class="admin-btn admin-btn-restore" onclick="document.getElementById('restoreInput').click()">⬆ 回存資料</button>
     <button class="admin-btn admin-btn-refresh" onclick="loadStats()">↻ 重新整理</button>
+    <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="onRestoreFileSelected(event)">
     <div class="count-badge">
       目前回覆：<strong id="totalCount">—</strong> 份
+    </div>
+  </div>
+
+  <!-- 回存確認 Modal -->
+  <div class="modal-backdrop" id="restoreModal">
+    <div class="modal-box">
+      <div class="modal-icon">⚠️</div>
+      <h3 class="modal-title">確認回存資料</h3>
+      <p class="modal-body" id="modalBody">—</p>
+      <p class="modal-warn">現有資料將被覆蓋（系統會自動保留一份備份）</p>
+      <div class="modal-actions">
+        <button class="admin-btn admin-btn-refresh" onclick="closeRestoreModal()">取消</button>
+        <button class="admin-btn admin-btn-restore" id="confirmRestoreBtn" onclick="doRestore()">確認回存</button>
+      </div>
     </div>
   </div>
 
@@ -80,6 +97,83 @@ async function loadStats() {
   const data = await res.json();
   document.getElementById('totalCount').textContent = data.total;
   renderStats(data);
+}
+
+// ── 備份 JSON ─────────────────────────────────────────────
+async function backupJSON() {
+  const res = await fetch('/api/admin/backup', {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (res.status === 401) { alert('未授權'); return; }
+  const blob = await res.blob();
+  const filename = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] || 'backup.json';
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── 回存：選擇檔案後預覽 ──────────────────────────────────
+let pendingRestoreData = null;
+
+function onRestoreFileSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = ''; // 清空，允許重複選同一檔
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error('不是陣列');
+      pendingRestoreData = data;
+
+      const earliest = data.length ? new Date(data[0].submittedAt).toLocaleDateString('zh-Hant') : '—';
+      const latest   = data.length ? new Date(data[data.length-1].submittedAt).toLocaleDateString('zh-Hant') : '—';
+      document.getElementById('modalBody').textContent =
+        `檔案包含 ${data.length} 筆回覆（${earliest} ～ ${latest}）`;
+      document.getElementById('restoreModal').classList.add('show');
+    } catch {
+      alert('❌ 檔案格式錯誤，請選擇有效的備份 JSON 檔案');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function closeRestoreModal() {
+  document.getElementById('restoreModal').classList.remove('show');
+  pendingRestoreData = null;
+}
+
+async function doRestore() {
+  if (!pendingRestoreData) return;
+  const btn = document.getElementById('confirmRestoreBtn');
+  btn.disabled = true;
+  btn.textContent = '回存中…';
+
+  try {
+    const res = await fetch('/api/admin/restore', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + token,
+      },
+      body: JSON.stringify(pendingRestoreData),
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeRestoreModal();
+      await loadStats();
+      alert(`✅ 回存成功！共 ${data.restored} 筆資料已寫入。`);
+    } else {
+      alert('❌ 回存失敗：' + (data.error || '未知錯誤'));
+    }
+  } catch {
+    alert('❌ 網路錯誤，請重試');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '確認回存';
+  }
 }
 
 // ── 匯出 CSV ──────────────────────────────────────────────
