@@ -55,7 +55,7 @@ async function doLogin() {
   if (data.success) {
     token = data.token;
     document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('adminWrap').style.display = '';
+    document.getElementById('adminWrap').style.display = 'block';
     loadStats();
   } else {
     document.getElementById('loginError').style.display = '';
