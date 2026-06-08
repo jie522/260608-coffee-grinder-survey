@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>後台管理 — 手搖磨豆機問卷</title>
   <link rel="stylesheet" href="admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -43,7 +44,15 @@
 
 <script>
 let token = '';
+let chartInstances = {};
 
+// ── 色盤 ──────────────────────────────────────────────────
+const PALETTE = [
+  '#c8a97e','#7eb8c8','#7ec87e','#c87e7e','#a87ec8',
+  '#c8bc7e','#7e9ec8','#c89e7e','#7ec8b8','#c87eaa'
+];
+
+// ── 登入 ──────────────────────────────────────────────────
 async function doLogin() {
   const pw = document.getElementById('pwInput').value;
   const res = await fetch('/api/admin/login', {
@@ -62,6 +71,7 @@ async function doLogin() {
   }
 }
 
+// ── 載入統計 ──────────────────────────────────────────────
 async function loadStats() {
   const res = await fetch('/api/admin/stats', {
     headers: { Authorization: 'Bearer ' + token }
@@ -72,10 +82,8 @@ async function loadStats() {
   renderStats(data);
 }
 
+// ── 匯出 CSV ──────────────────────────────────────────────
 async function exportCSV() {
-  const link = document.createElement('a');
-  link.href = '/api/admin/export';
-  // 加上 auth header 不能用 <a>，改用 fetch blob
   const res = await fetch('/api/admin/export', {
     headers: { Authorization: 'Bearer ' + token }
   });
@@ -84,69 +92,228 @@ async function exportCSV() {
   const filename = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] || 'survey.csv';
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
+// ── 銷毀舊圖表 ────────────────────────────────────────────
+function destroyCharts() {
+  Object.values(chartInstances).forEach(c => c.destroy());
+  chartInstances = {};
+}
+
+// ── 主渲染函式 ────────────────────────────────────────────
 function renderStats(data) {
+  destroyCharts();
   const grid = document.getElementById('statsGrid');
+
   if (data.total === 0) {
-    grid.innerHTML = '<div style="color:#555;padding:20px">尚無回覆資料</div>';
+    grid.innerHTML = '<div style="color:#666;padding:40px;text-align:center;grid-column:1/-1">尚無回覆資料，分享問卷連結開始收集吧！</div>';
     return;
   }
 
+  // 先產生所有 HTML
   let html = '';
   Object.entries(data.questions).forEach(([qId, q]) => {
-    html += `<div class="stat-card">`;
-    html += `<h3>${qId}</h3>`;
-    html += `<div class="q-text">${q.text}</div>`;
-
     if (q.type === 'single' || q.type === 'multiple') {
-      const total = Object.values(q.counts).reduce((a, b) => a + b, 0);
-      if (total === 0) {
-        html += `<div class="no-data">尚無作答資料</div>`;
-      } else {
-        Object.entries(q.counts).forEach(([label, count]) => {
-          const pct = total ? Math.round(count / total * 100) : 0;
-          html += `
-            <div class="bar-item">
-              <div class="bar-label">
-                <span>${label}</span>
-                <span class="count">${count} 份 (${pct}%)</span>
-              </div>
-              <div class="bar-track">
-                <div class="bar-fill" style="width:${pct}%"></div>
-              </div>
-            </div>`;
-        });
-      }
+      html += buildChoiceCard(qId, q);
     } else if (q.type === 'likert') {
-      Object.values(q.items).forEach(item => {
-        const avg = parseFloat(item.avg);
-        const pct = item.avg ? Math.round((avg / 5) * 100) : 0;
-        const color = avg >= 4 ? '#e07070' : avg >= 3 ? '#c8a97e' : '#7eb87e';
-        html += `
-          <div class="likert-item">
-            <div class="likert-item-label">${item.text} <span style="color:#555;font-size:0.75rem">(n=${item.n})</span></div>
-            <div class="likert-avg">
-              <div class="avg-track">
-                <div class="avg-fill" style="width:${pct}%;background:${color}"></div>
-              </div>
-              <div class="avg-val">${item.avg || '—'}</div>
-            </div>
-          </div>`;
-      });
+      html += buildLikertCard(qId, q);
     }
-
-    html += `</div>`;
   });
-
   grid.innerHTML = html || '<div style="color:#555">暫無統計資料</div>';
+
+  // HTML 注入後再初始化圖表
+  Object.entries(data.questions).forEach(([qId, q]) => {
+    if (q.type === 'single' || q.type === 'multiple') {
+      initChoiceChart(qId, q);
+    } else if (q.type === 'likert') {
+      initLikertChart(qId, q);
+    }
+  });
 }
 
-// 自動重新整理（每 30 秒）
+// ── 單選 / 多選卡 ─────────────────────────────────────────
+function buildChoiceCard(qId, q) {
+  const total = Object.values(q.counts).reduce((a, b) => a + b, 0);
+  const isSingle = q.type === 'single';
+  const typeLabel = isSingle ? '單選' : '多選';
+
+  // 只保留有數據的選項做清單
+  const rows = Object.entries(q.counts).map(([label, count]) => {
+    const pct = total ? Math.round(count / total * 100) : 0;
+    return `<div class="choice-row">
+      <span class="choice-label">${label}</span>
+      <span class="choice-count">${count} 份 (${pct}%)</span>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="stat-card">
+      <div class="card-head">
+        <span class="q-id">${qId}</span>
+        <span class="q-type-badge">${typeLabel}</span>
+      </div>
+      <div class="q-text">${q.text}</div>
+      ${total === 0
+        ? '<div class="no-data">尚無作答資料</div>'
+        : `<div class="chart-wrap"><canvas id="chart-${qId}"></canvas></div>
+           <div class="choice-list">${rows}</div>`
+      }
+    </div>`;
+}
+
+function initChoiceChart(qId, q) {
+  const canvas = document.getElementById(`chart-${qId}`);
+  if (!canvas) return;
+  const total = Object.values(q.counts).reduce((a, b) => a + b, 0);
+  if (total === 0) return;
+
+  const labels = Object.keys(q.counts);
+  const values = Object.values(q.counts);
+  const isSingle = q.type === 'single';
+
+  // 單選用甜甜圈，多選用水平長條
+  if (isSingle) {
+    chartInstances[qId] = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{ data: values, backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.label}：${ctx.raw} 份 (${Math.round(ctx.raw/total*100)}%)`
+            }
+          }
+        },
+        cutout: '60%'
+      }
+    });
+  } else {
+    chartInstances[qId] = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: PALETTE,
+          borderRadius: 4,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.raw} 份 (${Math.round(ctx.raw/total*100)}%)`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#333' },
+            ticks: { color: '#888', stepSize: 1 }
+          },
+          y: {
+            grid: { display: false },
+            ticks: {
+              color: '#ccc',
+              font: { size: 11 },
+              callback: (val, i) => {
+                const lbl = labels[i];
+                return lbl.length > 16 ? lbl.slice(0, 14) + '…' : lbl;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+// ── Likert 卡 ─────────────────────────────────────────────
+function buildLikertCard(qId, q) {
+  return `
+    <div class="stat-card stat-card-wide">
+      <div class="card-head">
+        <span class="q-id">${qId}</span>
+        <span class="q-type-badge">五點量表</span>
+      </div>
+      <div class="q-text">${q.text}</div>
+      <div class="chart-wrap chart-wrap-likert"><canvas id="chart-${qId}"></canvas></div>
+    </div>`;
+}
+
+function initLikertChart(qId, q) {
+  const canvas = document.getElementById(`chart-${qId}`);
+  if (!canvas) return;
+
+  const items = Object.values(q.items);
+  const labels = items.map(i => {
+    const t = i.text.replace('★ ', '');
+    return t.length > 22 ? t.slice(0, 20) + '…' : t;
+  });
+  const avgs = items.map(i => parseFloat(i.avg) || 0);
+  const ns   = items.map(i => i.n);
+
+  const bgColors = avgs.map(v =>
+    v >= 4   ? 'rgba(224,112,112,0.85)' :
+    v >= 3   ? 'rgba(200,169,126,0.85)' :
+               'rgba(126,184,126,0.85)'
+  );
+
+  chartInstances[qId] = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '平均分數',
+        data: avgs,
+        backgroundColor: bgColors,
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const n = ns[ctx.dataIndex];
+              return ` 平均 ${ctx.raw.toFixed(2)} 分（n=${n}）`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: 0, max: 5,
+          grid: { color: '#333' },
+          ticks: { color: '#888', stepSize: 1 }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: '#ccc', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+// ── 自動重新整理 ──────────────────────────────────────────
 setInterval(() => { if (token) loadStats(); }, 30000);
 </script>
 </body>
