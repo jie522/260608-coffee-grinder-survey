@@ -1,10 +1,40 @@
+/* ── Admin Panel — Starbucks Dark Green Theme ── */
+/* House Green #1E3932 | Green Accent #00754A | Gold #cba258 */
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --green-accent: #00754A;
+  --green-house:  #1E3932;
+  --green-uplift: #2b5148;
+  --green-mid:    #1a3030;
+  --gold:         #cba258;
+  --gold-light:   #dfc49d;
+  --surface-0:    #111918;
+  --surface-1:    #1a2826;
+  --surface-2:    #223330;
+  --surface-3:    #2b413d;
+  --border:       rgba(255,255,255,0.08);
+  --border-mid:   rgba(255,255,255,0.14);
+  --text-primary: rgba(255,255,255,0.92);
+  --text-secondary: rgba(255,255,255,0.60);
+  --text-hint:    rgba(255,255,255,0.38);
+  --radius-btn:   50px;
+  --radius-card:  12px;
+  --shadow-card:  0 1px 3px rgba(0,0,0,0.30), 0 0 0.5px rgba(0,0,0,0.20);
+  --transition:   all 0.2s ease;
+  --letter-tight: -0.01em;
+}
+
+html { font-size: 16px; }
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-  background: #1a1a1a;
-  color: #e0e0e0;
+  font-family: "Helvetica Neue", Helvetica, "Noto Sans TC", Arial, sans-serif;
+  background: var(--surface-0);
+  color: var(--text-primary);
   min-height: 100vh;
+  letter-spacing: var(--letter-tight);
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ── 登入畫面 ── */
@@ -15,129 +45,264 @@ body {
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(0,116,74,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgba(30,57,50,0.35) 0%, transparent 55%),
+    var(--surface-0);
 }
+
 .login-box {
-  background: #2a2a2a;
-  border-radius: 16px;
-  padding: 40px 36px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-card);
+  padding: 44px 36px;
   width: 100%;
   max-width: 380px;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.50), 0 0 0.5px rgba(0,0,0,0.30);
 }
-.login-box .icon { font-size: 2.8rem; margin-bottom: 16px; }
-.login-box h2 { font-size: 1.3rem; margin-bottom: 6px; color: #fff; }
-.login-box p { font-size: 0.85rem; color: #888; margin-bottom: 28px; }
+.login-box .icon { font-size: 2.6rem; margin-bottom: 16px; }
+.login-box h2 {
+  font-size: 1.25rem;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.login-box p { font-size: 0.83rem; color: var(--text-secondary); margin-bottom: 28px; }
+
 .login-input {
   width: 100%;
-  background: #1a1a1a;
-  border: 2px solid #3a3a3a;
-  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border-mid);
+  border-radius: 8px;
   padding: 12px 16px;
   font-size: 1rem;
-  color: #fff;
+  color: var(--text-primary);
   outline: none;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   transition: border-color 0.2s;
+  font-family: inherit;
 }
-.login-input:focus { border-color: #c8a97e; }
+.login-input:focus { border-color: var(--green-accent); }
+.login-input::placeholder { color: var(--text-hint); }
+
 .login-btn {
   width: 100%;
-  background: #c8a97e;
+  background: var(--green-accent);
   color: #fff;
   border: none;
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: var(--radius-btn);
+  padding: 13px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: var(--transition);
+  letter-spacing: var(--letter-tight);
 }
-.login-btn:hover { background: #b89568; }
-.login-error { color: #e07070; font-size: 0.85rem; margin-top: 10px; display: none; }
+.login-btn:hover { background: #006241; }
+.login-btn:active { transform: scale(0.95); }
+
+.login-error {
+  color: #f08080;
+  font-size: 0.83rem;
+  margin-top: 12px;
+  display: none;
+}
 
 /* ── 後台主界面 ── */
 .admin-wrap { display: none; }
 
+/* ── 頂部 Header ── */
 .admin-header {
-  background: #2a2a2a;
-  padding: 18px 32px;
+  background: var(--green-house);
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #333;
-}
-.admin-header h1 { font-size: 1.1rem; color: #fff; }
-.admin-header .badge { background: #c8a97e; color: #fff; font-size: 0.78rem; padding: 3px 10px; border-radius: 99px; }
-
-.admin-toolbar {
-  padding: 20px 32px;
-  display: flex;
   gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.30), 0 2px 2px rgba(0,0,0,0.16);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.admin-header h1 {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.admin-header .badge {
+  background: var(--gold);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: var(--radius-btn);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ── 工具列 ── */
+.admin-toolbar {
+  padding: 18px 32px;
+  display: flex;
+  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
 }
+
 .admin-btn {
   padding: 9px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: var(--radius-btn);
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: var(--transition);
+  border: 1.5px solid transparent;
+  letter-spacing: var(--letter-tight);
+  font-family: inherit;
 }
-.admin-btn-csv { background: #3d8b3d; color: #fff; }
-.admin-btn-csv:hover { background: #2d6b2d; }
-.admin-btn-refresh { background: #333; color: #ccc; }
-.admin-btn-refresh:hover { background: #444; }
+.admin-btn:active { transform: scale(0.95); }
+
+.admin-btn-csv {
+  background: var(--green-accent);
+  color: #fff;
+  border-color: var(--green-accent);
+}
+.admin-btn-csv:hover { background: #006241; border-color: #006241; }
+
+.admin-btn-refresh {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-mid);
+}
+.admin-btn-refresh:hover {
+  color: var(--text-primary);
+  border-color: rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.05);
+}
 
 .count-badge {
   margin-left: auto;
-  background: #2a2a2a;
-  border: 1px solid #444;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-size: 0.88rem;
-  color: #ccc;
+  background: var(--surface-2);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius-btn);
+  padding: 7px 20px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
-.count-badge strong { color: #c8a97e; font-size: 1.1rem; }
+.count-badge strong { color: var(--gold); font-size: 1.1rem; }
 
-/* ── 統計卡片 ── */
+/* ── 統計卡片格線 ── */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 20px;
-  padding: 24px 32px;
+  padding: 28px 32px;
 }
 
+/* ── 卡片 ── */
 .stat-card {
-  background: #2a2a2a;
-  border-radius: 12px;
+  background: var(--surface-1);
+  border-radius: var(--radius-card);
   padding: 22px 24px;
-  border: 1px solid #333;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s;
 }
-.stat-card h3 { font-size: 0.8rem; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-card .q-text { font-size: 0.95rem; color: #e0e0e0; margin-bottom: 16px; font-weight: 600; line-height: 1.4; }
+.stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.35); border-color: var(--border-mid); }
 
-/* 長條圖 */
-.bar-item { margin-bottom: 10px; }
-.bar-label { display: flex; justify-content: space-between; font-size: 0.82rem; color: #bbb; margin-bottom: 4px; }
-.bar-label .count { color: #888; }
-.bar-track { height: 10px; background: #1a1a1a; border-radius: 5px; overflow: hidden; }
-.bar-fill { height: 100%; background: #c8a97e; border-radius: 5px; transition: width 0.6s ease; }
+/* 寬版卡片（Likert 橫排）*/
+.stat-card-wide {
+  grid-column: 1 / -1;
+}
 
-/* Likert 統計 */
-.likert-item { margin-bottom: 10px; }
-.likert-item-label { font-size: 0.82rem; color: #ccc; margin-bottom: 4px; }
-.likert-avg { display: flex; align-items: center; gap: 10px; }
-.avg-track { flex: 1; height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; }
-.avg-fill { height: 100%; border-radius: 4px; }
-.avg-val { font-size: 0.88rem; font-weight: 700; color: #c8a97e; min-width: 32px; text-align: right; }
+/* ── 卡片頭部 ── */
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.q-id {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--green-accent);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  background: rgba(0,116,74,0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.q-type-badge {
+  font-size: 0.68rem;
+  color: var(--text-hint);
+  background: rgba(255,255,255,0.06);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+.q-text {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  margin-bottom: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+}
 
-.no-data { color: #555; font-size: 0.85rem; margin-top: 8px; }
+/* ── Chart 容器 ── */
+.chart-wrap {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 16px;
+  aspect-ratio: 1;
+}
+.chart-wrap-likert {
+  max-width: 100%;
+  aspect-ratio: auto;
+  height: 320px;
+}
 
-@media (max-width: 600px) {
-  .stats-grid { padding: 16px; grid-template-columns: 1fr; }
-  .admin-toolbar { padding: 16px; }
+/* ── 選項清單（圖表下方）── */
+.choice-list { display: flex; flex-direction: column; gap: 6px; }
+.choice-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.83rem;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.choice-row:last-child { border-bottom: none; }
+.choice-label { color: var(--text-secondary); line-height: 1.4; max-width: 70%; }
+.choice-count { color: var(--gold); font-weight: 700; white-space: nowrap; }
+
+/* ── 無資料 ── */
+.no-data { color: var(--text-hint); font-size: 0.85rem; margin-top: 8px; }
+
+/* ═══════════════════════════════
+   RWD — Mobile
+═══════════════════════════════ */
+@media (max-width: 767px) {
+  .admin-header { padding: 14px 16px; }
+  .admin-header h1 { font-size: 0.9rem; }
+
+  .admin-toolbar { padding: 14px 16px; gap: 8px; }
+  .admin-btn { padding: 8px 16px; font-size: 0.83rem; }
+  .count-badge { margin-left: 0; width: 100%; text-align: center; }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 14px;
+  }
+  .stat-card-wide { grid-column: 1; }
+  .chart-wrap-likert { height: 240px; }
+}
+
+@media (max-width: 479px) {
+  .login-box { padding: 32px 20px; }
 }
