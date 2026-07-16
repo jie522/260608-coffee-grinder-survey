@@ -217,9 +217,14 @@ URL：`/admin`，密碼：環境變數 `ADMIN_PASSWORD`（預設 `maxclaw`）
 
 ---
 
-## 部署（Railway）
+## 部署（Render）
 
-**流程：** 推送到 GitHub main branch → Railway 自動偵測並重新部署（約 1–2 分鐘）
+> ⚠️ 2026-07-16：原本部署在 Railway，因帳號 Trial 到期服務被停用（404），已改遷移至 **Render** 免費方案。Railway 專案不再使用。
+
+**正式網址：** https://coffee-grinder-survey.onrender.com/
+**後台：** https://coffee-grinder-survey.onrender.com/admin　密碼：`maxclaw`
+
+**流程：** 推送到 GitHub main branch → Render 自動偵測並重新部署
 
 ```bash
 git add <files>
@@ -227,14 +232,17 @@ git commit -m "描述"
 git push
 ```
 
-**Railway 設定：**
-- Service：連結 GitHub repo `jie522/260608-coffee-grinder-survey`
-- Volume：掛載到 `/data`，對應環境變數 `DATA_DIR=/data`
-- 環境變數：`ADMIN_PASSWORD`、`DATA_DIR`
+**Render 設定：**
+- Service：`coffee-grinder-survey`，連結 GitHub repo `jie522/260608-coffee-grinder-survey`
+- Build Command：`npm install`
+- Start Command：`node server.js`
+- 方案：**Free**（$0/月，512MB RAM / 0.1 CPU）
+- 環境變數：`ADMIN_PASSWORD=maxclaw`（`PORT` 由 Render 自動注入，`DATA_DIR` 未設定，使用預設 `./data`）
 
-**注意：** 在 Railway Canvas 修改設定後，必須點 **Deploy** 才會生效；只存草稿不會重新部署。
-
-**費用：** Railway Hobby Plan $5/月 + 用量（此專案實際約 $1–2/月）。
+**⚠️ 免費方案限制（重要）：**
+- **會休眠**：閒置 15 分鐘後自動休眠，下次請求會延遲 30–50 秒喚醒。正式發送問卷前建議先手動訪問一次「熱機」。
+- **不支援 persistent disk**：`data/responses.json` 不是永久儲存，服務重新部署或重啟容器時可能會被清空。**務必定期用後台「🗂 備份 JSON」下載回覆資料**，不要只依賴雲端保存。
+- 若未來回覆量變大或需要資料穩定保存，可考慮升級付費方案啟用 Persistent Disk，或改接外部資料庫。
 
 ---
 
